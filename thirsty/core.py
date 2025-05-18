@@ -211,8 +211,8 @@ def add_waypoints_to_gpx(gpx, pois):
                  poi["tags"]["amenity"] == "compressed_air":
                 wpt.name = "Repair"
                 wpt.description = "Bicycle repair station"
-                wpt.symbol = "tools"
-                wpt.type = "REPAIR"
+                wpt.symbol = "gear"
+                wpt.type = "GEAR"
             elif poi["tags"]["amenity"] in ["cafe", "restaurant", "fast_food"]:
                 wpt.name = poi["tags"]["amenity"].capitalize()
                 wpt.description = poi["tags"]["name"] if "name" in poi["tags"] else poi["tags"]["amenity"].capitalize()
@@ -227,8 +227,8 @@ def add_waypoints_to_gpx(gpx, pois):
             if poi["tags"]["shop"] == "bicycle":
                 wpt.name = "Bike Shop"
                 wpt.description = "Bicycle shop with repair service"
-                wpt.symbol = "tools"
-                wpt.type = "REPAIR"
+                wpt.symbol = "gear"
+                wpt.type = "GEAR"
             elif poi["tags"]["shop"] in ["bakery", "supermarket", "convenience", "greengrocer"]:
                 wpt.name = poi["tags"]["shop"].capitalize()
                 wpt.description = poi["tags"]["name"] if "name" in poi["tags"] else poi["tags"]["shop"].capitalize()
