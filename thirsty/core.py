@@ -131,7 +131,8 @@ def add_waypoints_to_gpx(gpx, pois):
         wpt.longitude = poi["lon"]
         wpt.name = "Water"
         wpt.description = "Water"
-        wpt.symbol="water-drop"
+        wpt.symbol = "water-drop"
+        wpt.type = "WATER"
         gpx.waypoints.append(wpt)
 
     return gpx
