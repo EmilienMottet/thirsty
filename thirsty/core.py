@@ -33,6 +33,16 @@ REPAIR_AMENITIES = {
     "shop": "[shop=bicycle]",
 }
 
+FOOD_AMENITIES = {
+    "cafe": "[amenity=cafe]",
+    "restaurant": "[amenity=restaurant]",
+    "fast_food": "[amenity=fast_food]",
+    "bakery": "[shop=bakery]",
+    "supermarket": "[shop=supermarket]",
+    "convenience": "[shop=convenience]",
+    "greengrocer": "[shop=greengrocer]",
+}
+
 
 def display_gpx_on_map(data, pois):
     """
@@ -81,13 +91,21 @@ def display_gpx_on_map(data, pois):
                 icon_color = "green"
                 icon_symbol = "wrench"
                 popup_text = "Bicycle Repair Station"
+            elif poi["tags"]["amenity"] in ["cafe", "restaurant", "fast_food"]:
+                icon_color = "orange"
+                icon_symbol = "cutlery"
+                popup_text = f"{poi['tags']['name'] if 'name' in poi['tags'] else poi['tags']['amenity'].capitalize()}"
             else:
                 popup_text = f"{poi['tags']['amenity']}"
-        elif "shop" in poi["tags"] and poi["tags"]["shop"] == "bicycle" and \
-             poi["tags"].get("service:bicycle:repair") == "yes":
-            icon_color = "green"
-            icon_symbol = "wrench"
-            popup_text = "Bicycle Shop with Repair"
+        elif "shop" in poi["tags"]:
+            if poi["tags"]["shop"] == "bicycle" and poi["tags"].get("service:bicycle:repair") == "yes":
+                icon_color = "green"
+                icon_symbol = "wrench"
+                popup_text = "Bicycle Shop with Repair"
+            elif poi["tags"]["shop"] in ["bakery", "supermarket", "convenience", "greengrocer"]:
+                icon_color = "orange"
+                icon_symbol = "shopping-cart"
+                popup_text = f"{poi['tags']['name'] if 'name' in poi['tags'] else poi['tags']['shop'].capitalize()}"
                 
         folium.Marker(
             location=[poi['lat'], poi['lon']],
@@ -134,9 +152,9 @@ def get_bounds(gpx):
     return min_lat, min_lon, max_lat, max_lon
 
 
-def query_overpass(bbox, water_types=None, toilet_types=None, repair_types=None):
+def query_overpass(bbox, water_types=None, toilet_types=None, repair_types=None, food_types=None):
     """
-    Generate an Overpass QL query for potable drinking water POIs, toilets, and/or bicycle repair stations.
+    Generate an Overpass QL query for potable drinking water POIs, toilets, bicycle repair stations, and food amenities.
     """
 
     south, west, north, east = bbox
@@ -159,6 +177,11 @@ def query_overpass(bbox, water_types=None, toilet_types=None, repair_types=None)
     if repair_types:
         for poi_type in repair_types:
             tag_filter = REPAIR_AMENITIES[poi_type]
+            query_parts.append(f'node{tag_filter}{bbox_str};')
+            
+    if food_types:
+        for poi_type in food_types:
+            tag_filter = FOOD_AMENITIES[poi_type]
             query_parts.append(f'node{tag_filter}{bbox_str};')
 
     query = "[out:json][timeout:25];(" + "".join(query_parts) + ");out center;"
@@ -192,17 +215,32 @@ def add_waypoints_to_gpx(gpx, pois):
                 wpt.description = "Bicycle repair station"
                 wpt.symbol = "tools"
                 wpt.type = "REPAIR"
+            elif poi["tags"]["amenity"] in ["cafe", "restaurant", "fast_food"]:
+                wpt.name = poi["tags"]["amenity"].capitalize()
+                wpt.description = poi["tags"]["name"] if "name" in poi["tags"] else poi["tags"]["amenity"].capitalize()
+                wpt.symbol = "restaurant"
+                wpt.type = "FOOD"
             else:
                 wpt.name = "Water"
                 wpt.description = "Water"
                 wpt.symbol = "water-drop"
                 wpt.type = "WATER"
-        elif "shop" in poi["tags"] and poi["tags"]["shop"] == "bicycle" and \
-             poi["tags"].get("service:bicycle:repair") == "yes":
-            wpt.name = "Bike Shop"
-            wpt.description = "Bicycle shop with repair service"
-            wpt.symbol = "tools"
-            wpt.type = "REPAIR"
+        elif "shop" in poi["tags"]:
+            if poi["tags"]["shop"] == "bicycle" and poi["tags"].get("service:bicycle:repair") == "yes":
+                wpt.name = "Bike Shop"
+                wpt.description = "Bicycle shop with repair service"
+                wpt.symbol = "tools"
+                wpt.type = "REPAIR"
+            elif poi["tags"]["shop"] in ["bakery", "supermarket", "convenience", "greengrocer"]:
+                wpt.name = poi["tags"]["shop"].capitalize()
+                wpt.description = poi["tags"]["name"] if "name" in poi["tags"] else poi["tags"]["shop"].capitalize()
+                wpt.symbol = "shopping"
+                wpt.type = "FOOD"
+            else:
+                wpt.name = "Water"
+                wpt.description = "Water"
+                wpt.symbol = "water-drop"
+                wpt.type = "WATER"
         else:
             wpt.name = "Water"
             wpt.description = "Water"

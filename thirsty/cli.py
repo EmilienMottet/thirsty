@@ -13,8 +13,9 @@ def main():
     default_water = next(iter(thirsty.core.WATER_AMENITIES))
     default_toilet = next(iter(thirsty.core.TOILET_AMENITIES))
     default_repair = next(iter(thirsty.core.REPAIR_AMENITIES))
+    default_food = next(iter(thirsty.core.FOOD_AMENITIES))
 
-    parser = argparse.ArgumentParser(description="Add water, toilet, and bicycle repair POIs to a GPX trace.")
+    parser = argparse.ArgumentParser(description="Add water, toilet, bicycle repair, and food POIs to a GPX trace.")
 
     parser.add_argument("input", help="input GPX trace")
 
@@ -37,6 +38,10 @@ def main():
     parser.add_argument("-r", "--repair", action="append",
                         choices=thirsty.core.REPAIR_AMENITIES.keys(), default=None,
                         help=f"add bicycle repair amenities to the trace (can be repeated)")
+                        
+    parser.add_argument("-f", "--food", action="append",
+                        choices=thirsty.core.FOOD_AMENITIES.keys(), default=None,
+                        help=f"add food and refreshment amenities to the trace (can be repeated)")
 
     # Keep backward compatibility with -p argument
     parser.add_argument("-p", "--poi-type", action="append",
@@ -66,6 +71,8 @@ def main():
         toilet_types = [default_toilet]
         
     repair_types = args.repair
+    
+    food_types = args.food
 
     console.print(f"Selected water amenities: {args.water}")
     if args.toilet:
@@ -77,10 +84,15 @@ def main():
         console.print(f"Selected repair amenities: {repair_types}")
     else:
         console.print("No repair amenities selected")
+        
+    if food_types:
+        console.print(f"Selected food amenities: {food_types}")
+    else:
+        console.print("No food amenities selected")
 
     gpx = gpxpy.parse(input)
     bounds = thirsty.core.get_bounds(gpx)
-    pois = thirsty.core.query_overpass(bounds, args.water, toilet_types, repair_types)
+    pois = thirsty.core.query_overpass(bounds, args.water, toilet_types, repair_types, food_types)
     pois = thirsty.core.filter_pois_near_track(gpx, pois, max_distance_m=args.distance)
     gpx = thirsty.core.add_waypoints_to_gpx(gpx, pois)
 

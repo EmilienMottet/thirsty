@@ -55,6 +55,7 @@ You can customize which types of POIs you want to add using the following option
 - **`--water`** (or `-w`): Specify water-related POI types (can be repeated for multiple types)
 - **`--toilet`** (or `-t`): Add toilet amenities to the trace (flag, no additional argument needed)
 - **`--repair`** (or `-r`): Specify bicycle repair-related POI types (can be repeated for multiple types)
+- **`--food`** (or `-f`): Specify food and refreshment amenities (can be repeated for multiple types)
 
 If no option is specified, the default water amenity (`drinking_water`) will be used.
 
@@ -85,6 +86,18 @@ If no option is specified, the default water amenity (`drinking_water`) will be 
 | `pump`          | Compressed air stations (for tires).                                  |
 | `shop`          | Bicycle shops that offer repair services.                             |
 
+#### Food Amenities
+
+| POI Type        | Description                                                            |
+|:----------------|:-----------------------------------------------------------------------|
+| `cafe`          | Cafés where you can get food and drinks.                              |
+| `restaurant`    | Restaurants serving meals.                                            |
+| `fast_food`     | Fast food establishments.                                             |
+| `bakery`        | Bakeries selling bread and pastries.                                  |
+| `supermarket`   | Supermarkets for groceries and supplies.                              |
+| `convenience`   | Convenience stores for quick purchases.                               |
+| `greengrocer`   | Shops specializing in fruits and vegetables.                          |
+
 ### Example usage
 
 Use default drinking water points:
@@ -111,10 +124,16 @@ Add water points, toilets, and bicycle repair stations:
 thirsty input.gpx output.gpx -w water -t -r workshop -r pump
 ```
 
-Add all supported water amenities, toilets, and bicycle repair amenities:
+Add water points and food amenities:
 
 ```bash
-thirsty input.gpx output.gpx -w water -w point -w tap -w spring -w fountain -t -r workshop -r rental -r pump -r shop
+thirsty input.gpx output.gpx -w water -f cafe -f bakery
+```
+
+Add all supported water amenities, toilets, bicycle repair, and food amenities:
+
+```bash
+thirsty input.gpx output.gpx -w water -w point -w tap -w spring -w fountain -t -r workshop -r rental -r pump -r shop -f cafe -f restaurant -f bakery -f supermarket
 ```
 
 > **Note**: The older `-p` option is still supported for backward compatibility but is deprecated. It is recommended to use the `-w` option instead.
