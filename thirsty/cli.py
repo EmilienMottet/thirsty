@@ -62,10 +62,8 @@ def main():
         else:
             args.water.extend(args.poi_type)
             
-    # Set defaults if no options provided
-    if args.water is None:
-        args.water = [default_water]
-        
+    # No default options anymore - user must explicitly select water amenities
+    
     toilet_types = []
     if args.toilet:
         toilet_types = [default_toilet]
@@ -74,7 +72,11 @@ def main():
     
     food_types = args.food
 
-    console.print(f"Selected water amenities: {args.water}")
+    if args.water:
+        console.print(f"Selected water amenities: {args.water}")
+    else:
+        console.print("No water amenities selected")
+        
     if args.toilet:
         console.print(f"Selected toilet amenities: {toilet_types}")
     else:

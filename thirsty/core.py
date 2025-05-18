@@ -85,8 +85,7 @@ def display_gpx_on_map(data, pois):
                 icon_symbol = "home"
                 popup_text = "Toilets"
             elif poi["tags"]["amenity"] == "bicycle_repair_station" or \
-                 (poi["tags"]["amenity"] == "bicycle_rental" and 
-                  poi["tags"].get("service:bicycle:repair") == "yes") or \
+                 poi["tags"]["amenity"] == "bicycle_rental" or \
                  poi["tags"]["amenity"] == "compressed_air":
                 icon_color = "green"
                 icon_symbol = "wrench"
@@ -98,7 +97,7 @@ def display_gpx_on_map(data, pois):
             else:
                 popup_text = f"{poi['tags']['amenity']}"
         elif "shop" in poi["tags"]:
-            if poi["tags"]["shop"] == "bicycle" and poi["tags"].get("service:bicycle:repair") == "yes":
+            if poi["tags"]["shop"] == "bicycle":
                 icon_color = "green"
                 icon_symbol = "wrench"
                 popup_text = "Bicycle Shop with Repair"
@@ -208,8 +207,7 @@ def add_waypoints_to_gpx(gpx, pois):
                 wpt.symbol = "restroom"
                 wpt.type = "TOILET"
             elif poi["tags"]["amenity"] == "bicycle_repair_station" or \
-                 (poi["tags"]["amenity"] == "bicycle_rental" and 
-                  poi["tags"].get("service:bicycle:repair") == "yes") or \
+                 poi["tags"]["amenity"] == "bicycle_rental" or \
                  poi["tags"]["amenity"] == "compressed_air":
                 wpt.name = "Repair"
                 wpt.description = "Bicycle repair station"
@@ -226,7 +224,7 @@ def add_waypoints_to_gpx(gpx, pois):
                 wpt.symbol = "water-drop"
                 wpt.type = "WATER"
         elif "shop" in poi["tags"]:
-            if poi["tags"]["shop"] == "bicycle" and poi["tags"].get("service:bicycle:repair") == "yes":
+            if poi["tags"]["shop"] == "bicycle":
                 wpt.name = "Bike Shop"
                 wpt.description = "Bicycle shop with repair service"
                 wpt.symbol = "tools"

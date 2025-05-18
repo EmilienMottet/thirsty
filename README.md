@@ -49,15 +49,14 @@ Found a bug? Need a new feature? [Open an Issue](https://github.com/jsleroy/thir
 
 ## POI Type Selection
 
-By default, **Thirsty** searches for public drinking water fountains (`drinking_water` POIs).
-You can customize which types of POIs you want to add using the following options:
+You must specify which types of POIs you want to add using the following options:
 
 - **`--water`** (or `-w`): Specify water-related POI types (can be repeated for multiple types)
 - **`--toilet`** (or `-t`): Add toilet amenities to the trace (flag, no additional argument needed)
 - **`--repair`** (or `-r`): Specify bicycle repair-related POI types (can be repeated for multiple types)
 - **`--food`** (or `-f`): Specify food and refreshment amenities (can be repeated for multiple types)
 
-If no option is specified, the default water amenity (`drinking_water`) will be used.
+If no option is specified, no amenities will be added to the trace.
 
 ### Available POI types
 
@@ -65,7 +64,7 @@ If no option is specified, the default water amenity (`drinking_water`) will be 
 
 | POI Type        | Description                                                            |
 |:----------------|:-----------------------------------------------------------------------|
-| `water`         | Public drinking water fountains (default).                            |
+| `water`         | Public drinking water fountains.                                      |
 | `point`         | Water refill stations for caravans, RVs, or marinas (only potable ones). |
 | `tap`           | Taps providing potable water.                                          |
 | `spring`        | Natural springs with potable water.                                   |
@@ -100,10 +99,10 @@ If no option is specified, the default water amenity (`drinking_water`) will be 
 
 ### Example usage
 
-Use default drinking water points:
+To add water points (must specify type):
 
 ```bash
-thirsty input.gpx output.gpx
+thirsty input.gpx output.gpx -w water
 ```
 
 Use **only** springs and water taps:
