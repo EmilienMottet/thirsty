@@ -168,7 +168,14 @@ thirsty https://example.com/yourfile.gpx output.gpx --water water --toilet --rep
 - **Water Amenities**: Specify which water amenities to add with `-w/--water`.
 - **Toilet Amenities**: Add toilets with `-t/--toilet`.
 - **Repair Amenities**: Specify which bicycle repair amenities to add with `-r/--repair`.
-- **Distance**: Optionally specify the maximum distance (in meters) from the track for POIs (default: 100 meters).
+- **Food Amenities**: Specify which food amenities to add with `-f/--food`.
+- **Distance Options**:
+  - General distance: `--distance` sets the default search distance for all POI types (default: 100 meters)
+  - Type-specific distances:
+    - `--water-distance`: Search distance for water points only
+    - `--toilet-distance`: Search distance for toilets only
+    - `--repair-distance`: Search distance for repair stations only
+    - `--food-distance`: Search distance for food amenities only
 
 ### Local GPX File Usage
 
@@ -186,6 +193,9 @@ thirsty input.gpx output.gpx -w water -t -r workshop
 
 # Specify search distance
 thirsty input.gpx output.gpx -w water -t -r workshop --distance 150
+
+# Use type-specific distances
+thirsty input.gpx output.gpx -w water -t -r workshop --water-distance 200 --toilet-distance 100 --repair-distance 300
 ```
 
 ### Features in Detail

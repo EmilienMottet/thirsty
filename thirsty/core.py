@@ -267,17 +267,47 @@ def haversine(lat1, lon1, lat2, lon2):
     return R * c
 
 
-def filter_pois_near_track(gpx, pois, max_distance_m=100):
+def filter_pois_near_track(gpx, pois, max_distance_m=100, type_distances=None):
     """
-    Keep only POI near trace
+    Keep only POI near trace, with optional distances per POI type
+    
+    Parameters:
+    - gpx: GPX object with the track
+    - pois: List of POIs to filter
+    - max_distance_m: Default maximum distance in meters
+    - type_distances: Dictionary mapping POI types to specific distances
+      e.g. {'WATER': 200, 'TOILET': 100, 'GEAR': 300, 'FOOD': 150}
     """
-
+    if type_distances is None:
+        type_distances = {}
+        
     points = [pt for trk in gpx.tracks for seg in trk.segments for pt in seg.points]
     nearby_pois = []
 
     for poi in rich.progress.track(pois, description="Filtering POI"):
         lat, lon = poi["lat"], poi["lon"]
-        if any(haversine(lat, lon, pt.latitude, pt.longitude) < max_distance_m for pt in points):
+        
+        # Determine the POI type for distance filtering
+        poi_type = "WATER"  # Default type
+        if "amenity" in poi["tags"]:
+            if poi["tags"]["amenity"] == "toilets":
+                poi_type = "TOILET"
+            elif poi["tags"]["amenity"] == "bicycle_repair_station" or \
+                 poi["tags"]["amenity"] == "bicycle_rental" or \
+                 poi["tags"]["amenity"] == "compressed_air":
+                poi_type = "GEAR"
+            elif poi["tags"]["amenity"] in ["cafe", "restaurant", "fast_food"]:
+                poi_type = "FOOD"
+        elif "shop" in poi["tags"]:
+            if poi["tags"]["shop"] == "bicycle":
+                poi_type = "GEAR"
+            elif poi["tags"]["shop"] in ["bakery", "supermarket", "convenience", "greengrocer"]:
+                poi_type = "FOOD"
+                
+        # Use type-specific distance if available, otherwise fall back to default
+        distance = type_distances.get(poi_type, max_distance_m)
+        
+        if any(haversine(lat, lon, pt.latitude, pt.longitude) < distance for pt in points):
             nearby_pois.append(poi)
 
     return nearby_pois

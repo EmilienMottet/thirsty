@@ -23,7 +23,19 @@ def main():
                         type=argparse.FileType("w"))
 
     parser.add_argument("-d", "--distance", type=float, default=100,
-                        help="search distance around trace")
+                        help="default search distance around trace (in meters)")
+                        
+    parser.add_argument("--water-distance", type=float, default=None,
+                        help="search distance for water points (in meters)")
+                        
+    parser.add_argument("--toilet-distance", type=float, default=None,
+                        help="search distance for toilets (in meters)")
+                        
+    parser.add_argument("--repair-distance", type=float, default=None,
+                        help="search distance for repair stations (in meters)")
+                        
+    parser.add_argument("--food-distance", type=float, default=None,
+                        help="search distance for food amenities (in meters)")
 
     parser.add_argument("--html", action="store_true",
                         help="generate HTML interactive map to <output>.html")
@@ -95,7 +107,19 @@ def main():
     gpx = gpxpy.parse(input)
     bounds = thirsty.core.get_bounds(gpx)
     pois = thirsty.core.query_overpass(bounds, args.water, toilet_types, repair_types, food_types)
-    pois = thirsty.core.filter_pois_near_track(gpx, pois, max_distance_m=args.distance)
+    
+    # Set up type-specific distances
+    type_distances = {}
+    if args.water_distance is not None:
+        type_distances["WATER"] = args.water_distance
+    if args.toilet_distance is not None:
+        type_distances["TOILET"] = args.toilet_distance
+    if args.repair_distance is not None:
+        type_distances["GEAR"] = args.repair_distance
+    if args.food_distance is not None:
+        type_distances["FOOD"] = args.food_distance
+        
+    pois = thirsty.core.filter_pois_near_track(gpx, pois, max_distance_m=args.distance, type_distances=type_distances)
     gpx = thirsty.core.add_waypoints_to_gpx(gpx, pois)
 
     if args.html:
