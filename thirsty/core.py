@@ -199,49 +199,93 @@ def add_waypoints_to_gpx(gpx, pois):
         wpt.latitude = poi["lat"]
         wpt.longitude = poi["lon"]
         
+        # Helper function to create POI name (limited to 15 chars)
+        def create_poi_name(default_name):
+            if "name" in poi["tags"]:
+                # Use POI's original name if available, truncated to 15 chars
+                return poi["tags"]["name"][:15]
+            return default_name[:15]  # Default name truncated to 15 chars
+        
         # Determine POI type based on tags
         if "amenity" in poi["tags"]:
             if poi["tags"]["amenity"] == "toilets":
-                wpt.name = "Toilets"
+                wpt.name = create_poi_name("Toilets")
                 wpt.description = "Toilets"
                 wpt.symbol = "restroom"
                 wpt.type = "TOILET"
             elif poi["tags"]["amenity"] == "bicycle_repair_station" or \
                  poi["tags"]["amenity"] == "bicycle_rental" or \
                  poi["tags"]["amenity"] == "compressed_air":
-                wpt.name = "Repair"
+                wpt.name = create_poi_name("Repair")
                 wpt.description = "Bicycle repair station"
                 wpt.symbol = "gear"
                 wpt.type = "GEAR"
             elif poi["tags"]["amenity"] in ["cafe", "restaurant", "fast_food"]:
-                wpt.name = poi["tags"]["amenity"].capitalize()
+                wpt.name = create_poi_name(poi["tags"]["amenity"].capitalize())
                 wpt.description = poi["tags"]["name"] if "name" in poi["tags"] else poi["tags"]["amenity"].capitalize()
                 wpt.symbol = "restaurant"
                 wpt.type = "FOOD"
-            else:
-                wpt.name = "Water"
-                wpt.description = "Water"
+            elif poi["tags"]["amenity"] == "drinking_water":
+                wpt.name = create_poi_name("Drinking Fountain")
+                wpt.description = "Drinking water fountain"
+                wpt.symbol = "water-drop"
+                wpt.type = "WATER"
+            elif poi["tags"]["amenity"] == "water_point" and poi["tags"].get("drinking_water") == "yes":
+                wpt.name = create_poi_name("Water Point")
+                wpt.description = "Potable water point"
+                wpt.symbol = "water-drop"
+                wpt.type = "WATER"
+            elif poi["tags"]["amenity"] == "fountain" and poi["tags"].get("drinking_water") == "yes":
+                wpt.name = create_poi_name("Potable Fountain")
+                wpt.description = "Potable decorative fountain"
+                wpt.symbol = "water-drop"
+                wpt.type = "WATER"
+            elif "man_made" in poi["tags"] and poi["tags"]["man_made"] == "water_tap" and poi["tags"].get("drinking_water") == "yes":
+                wpt.name = create_poi_name("Water Tap")
+                wpt.description = "Potable water tap"
+                wpt.symbol = "water-drop"
+                wpt.type = "WATER"
+            elif "natural" in poi["tags"] and poi["tags"]["natural"] == "spring" and poi["tags"].get("drinking_water") == "yes":
+                wpt.name = create_poi_name("Natural Spring")
+                wpt.description = "Natural spring with potable water"
                 wpt.symbol = "water-drop"
                 wpt.type = "WATER"
         elif "shop" in poi["tags"]:
             if poi["tags"]["shop"] == "bicycle":
-                wpt.name = "Bike Shop"
+                wpt.name = create_poi_name("Bike Shop")
                 wpt.description = "Bicycle shop with repair service"
                 wpt.symbol = "gear"
                 wpt.type = "GEAR"
             elif poi["tags"]["shop"] in ["bakery", "supermarket", "convenience", "greengrocer"]:
-                wpt.name = poi["tags"]["shop"].capitalize()
+                wpt.name = create_poi_name(poi["tags"]["shop"].capitalize())
                 wpt.description = poi["tags"]["name"] if "name" in poi["tags"] else poi["tags"]["shop"].capitalize()
                 wpt.symbol = "shopping"
                 wpt.type = "FOOD"
             else:
-                wpt.name = "Water"
-                wpt.description = "Water"
+                # Unknown shop type
+                wpt.name = create_poi_name("Unknown Shop")
+                wpt.description = f"Shop: {poi['tags']['shop']}"
                 wpt.symbol = "water-drop"
                 wpt.type = "WATER"
+        elif "natural" in poi["tags"] and poi["tags"]["natural"] == "spring":
+            # Natural spring without explicit drinking_water tag
+            wpt.name = create_poi_name("Spring")
+            wpt.description = "Natural spring (drinking quality unknown)"
+            wpt.symbol = "water-drop"
+            wpt.type = "WATER"
+        elif "man_made" in poi["tags"] and poi["tags"]["man_made"] == "water_tap":
+            # Water tap without explicit drinking_water tag
+            wpt.name = create_poi_name("Water Tap")
+            wpt.description = "Water tap (drinking quality unknown)"
+            wpt.symbol = "water-drop"
+            wpt.type = "WATER"
         else:
-            wpt.name = "Water"
-            wpt.description = "Water"
+            # Default for any other POI detected as water source
+            tag_keys = list(poi["tags"].keys())
+            tag_summary = ", ".join([f"{k}={poi['tags'][k]}" for k in tag_keys[:2]])
+            
+            wpt.name = create_poi_name("Water Source")
+            wpt.description = f"Water source: {tag_summary}"
             wpt.symbol = "water-drop"
             wpt.type = "WATER"
             
