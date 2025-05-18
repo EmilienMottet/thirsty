@@ -26,6 +26,13 @@ TOILET_AMENITIES = {
     "toilets": "[amenity=toilets]",
 }
 
+REPAIR_AMENITIES = {
+    "workshop": "[amenity=bicycle_repair_station]",
+    "rental": "[amenity=bicycle_rental]",
+    "pump": "[amenity=compressed_air]",
+    "shop": "[shop=bicycle]",
+}
+
 
 def display_gpx_on_map(data, pois):
     """
@@ -67,8 +74,20 @@ def display_gpx_on_map(data, pois):
                 icon_color = "purple"
                 icon_symbol = "home"
                 popup_text = "Toilets"
+            elif poi["tags"]["amenity"] == "bicycle_repair_station" or \
+                 (poi["tags"]["amenity"] == "bicycle_rental" and 
+                  poi["tags"].get("service:bicycle:repair") == "yes") or \
+                 poi["tags"]["amenity"] == "compressed_air":
+                icon_color = "green"
+                icon_symbol = "wrench"
+                popup_text = "Bicycle Repair Station"
             else:
                 popup_text = f"{poi['tags']['amenity']}"
+        elif "shop" in poi["tags"] and poi["tags"]["shop"] == "bicycle" and \
+             poi["tags"].get("service:bicycle:repair") == "yes":
+            icon_color = "green"
+            icon_symbol = "wrench"
+            popup_text = "Bicycle Shop with Repair"
                 
         folium.Marker(
             location=[poi['lat'], poi['lon']],
@@ -115,9 +134,9 @@ def get_bounds(gpx):
     return min_lat, min_lon, max_lat, max_lon
 
 
-def query_overpass(bbox, water_types=None, toilet_types=None):
+def query_overpass(bbox, water_types=None, toilet_types=None, repair_types=None):
     """
-    Generate an Overpass QL query for potable drinking water POIs and/or toilets.
+    Generate an Overpass QL query for potable drinking water POIs, toilets, and/or bicycle repair stations.
     """
 
     south, west, north, east = bbox
@@ -135,6 +154,11 @@ def query_overpass(bbox, water_types=None, toilet_types=None):
     if toilet_types:
         for poi_type in toilet_types:
             tag_filter = TOILET_AMENITIES[poi_type]
+            query_parts.append(f'node{tag_filter}{bbox_str};')
+            
+    if repair_types:
+        for poi_type in repair_types:
+            tag_filter = REPAIR_AMENITIES[poi_type]
             query_parts.append(f'node{tag_filter}{bbox_str};')
 
     query = "[out:json][timeout:25];(" + "".join(query_parts) + ");out center;"
@@ -154,11 +178,31 @@ def add_waypoints_to_gpx(gpx, pois):
         wpt.longitude = poi["lon"]
         
         # Determine POI type based on tags
-        if "amenity" in poi["tags"] and poi["tags"]["amenity"] == "toilets":
-            wpt.name = "Toilets"
-            wpt.description = "Toilets"
-            wpt.symbol = "restroom"
-            wpt.type = "TOILET"
+        if "amenity" in poi["tags"]:
+            if poi["tags"]["amenity"] == "toilets":
+                wpt.name = "Toilets"
+                wpt.description = "Toilets"
+                wpt.symbol = "restroom"
+                wpt.type = "TOILET"
+            elif poi["tags"]["amenity"] == "bicycle_repair_station" or \
+                 (poi["tags"]["amenity"] == "bicycle_rental" and 
+                  poi["tags"].get("service:bicycle:repair") == "yes") or \
+                 poi["tags"]["amenity"] == "compressed_air":
+                wpt.name = "Repair"
+                wpt.description = "Bicycle repair station"
+                wpt.symbol = "tools"
+                wpt.type = "REPAIR"
+            else:
+                wpt.name = "Water"
+                wpt.description = "Water"
+                wpt.symbol = "water-drop"
+                wpt.type = "WATER"
+        elif "shop" in poi["tags"] and poi["tags"]["shop"] == "bicycle" and \
+             poi["tags"].get("service:bicycle:repair") == "yes":
+            wpt.name = "Bike Shop"
+            wpt.description = "Bicycle shop with repair service"
+            wpt.symbol = "tools"
+            wpt.type = "REPAIR"
         else:
             wpt.name = "Water"
             wpt.description = "Water"

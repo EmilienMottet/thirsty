@@ -12,8 +12,9 @@ console = rich.console.Console()
 def main():
     default_water = next(iter(thirsty.core.WATER_AMENITIES))
     default_toilet = next(iter(thirsty.core.TOILET_AMENITIES))
+    default_repair = next(iter(thirsty.core.REPAIR_AMENITIES))
 
-    parser = argparse.ArgumentParser(description="Add water and toilet POIs to a GPX trace.")
+    parser = argparse.ArgumentParser(description="Add water, toilet, and bicycle repair POIs to a GPX trace.")
 
     parser.add_argument("input", help="input GPX trace")
 
@@ -32,6 +33,10 @@ def main():
                         
     parser.add_argument("-t", "--toilet", action="store_true",
                         help="add toilet amenities to the trace")
+                        
+    parser.add_argument("-r", "--repair", action="append",
+                        choices=thirsty.core.REPAIR_AMENITIES.keys(), default=None,
+                        help=f"add bicycle repair amenities to the trace (can be repeated)")
 
     # Keep backward compatibility with -p argument
     parser.add_argument("-p", "--poi-type", action="append",
@@ -59,16 +64,23 @@ def main():
     toilet_types = []
     if args.toilet:
         toilet_types = [default_toilet]
+        
+    repair_types = args.repair
 
     console.print(f"Selected water amenities: {args.water}")
     if args.toilet:
         console.print(f"Selected toilet amenities: {toilet_types}")
     else:
         console.print("No toilet amenities selected")
+        
+    if repair_types:
+        console.print(f"Selected repair amenities: {repair_types}")
+    else:
+        console.print("No repair amenities selected")
 
     gpx = gpxpy.parse(input)
     bounds = thirsty.core.get_bounds(gpx)
-    pois = thirsty.core.query_overpass(bounds, args.water, toilet_types)
+    pois = thirsty.core.query_overpass(bounds, args.water, toilet_types, repair_types)
     pois = thirsty.core.filter_pois_near_track(gpx, pois, max_distance_m=args.distance)
     gpx = thirsty.core.add_waypoints_to_gpx(gpx, pois)
 

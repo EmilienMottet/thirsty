@@ -6,7 +6,7 @@
 
 # Thirsty
 
-Add hydration points and toilets to your GPX tracks automatically 🚴‍♂️💧🚻
+Add hydration points, toilets, and bicycle repair stations to your GPX tracks automatically 🚴‍♂️💧🚻🔧
 
 <p align="center">
 <a href="https://www.paypal.com/donate/?business=TJAXC3T4WD66L&no_recurring=0&currency_code=EUR" target="_blank">
@@ -14,7 +14,7 @@ Add hydration points and toilets to your GPX tracks automatically 🚴‍♂️�
 </a>
 </p>
 
-Thirsty is a Python tool that enhances your GPX files by adding Points of Interest (POIs), such as drinking water points and toilets, to your cycling or running routes. It integrates with the Overpass API to query OpenStreetMap for relevant points along your route and adds them to the GPX file. Ideal for long-distance cycling events, ultra races, or any activity where hydration points and facilities matter!
+Thirsty is a Python tool that enhances your GPX files by adding Points of Interest (POIs), such as drinking water points, toilets, and bicycle repair stations, to your cycling or running routes. It integrates with the Overpass API to query OpenStreetMap for relevant points along your route and adds them to the GPX file. Ideal for long-distance cycling events, ultra races, or any activity where hydration points and facilities matter!
 
 Found a bug? Need a new feature? [Open an Issue](https://github.com/jsleroy/thirsty/issues)!
 
@@ -40,7 +40,7 @@ Found a bug? Need a new feature? [Open an Issue](https://github.com/jsleroy/thir
 
 ## Features
 
-- **Query Overpass API**: Fetch drinking water and toilet POIs from OpenStreetMap.
+- **Query Overpass API**: Fetch drinking water, toilet, and bicycle repair POIs from OpenStreetMap.
 - **Bounding Box Filtering**: Filter POIs around a defined area to match your GPX route.
 - **Distance-based Filtering**: Ensures POIs are within a defined proximity of your GPX track.
 - **Supports GPX from URL and Local Files**: Easily work with GPX files from your device or download them from a URL.
@@ -54,6 +54,7 @@ You can customize which types of POIs you want to add using the following option
 
 - **`--water`** (or `-w`): Specify water-related POI types (can be repeated for multiple types)
 - **`--toilet`** (or `-t`): Add toilet amenities to the trace (flag, no additional argument needed)
+- **`--repair`** (or `-r`): Specify bicycle repair-related POI types (can be repeated for multiple types)
 
 If no option is specified, the default water amenity (`drinking_water`) will be used.
 
@@ -75,6 +76,15 @@ If no option is specified, the default water amenity (`drinking_water`) will be 
 |:----------------|:-----------------------------------------------------------------------|
 | `toilets`       | Public toilets.                                                       |
 
+#### Repair Amenities
+
+| POI Type        | Description                                                            |
+|:----------------|:-----------------------------------------------------------------------|
+| `workshop`      | Dedicated bicycle repair stations.                                    |
+| `rental`        | Bicycle rental stations that also offer repair services.              |
+| `pump`          | Compressed air stations (for tires).                                  |
+| `shop`          | Bicycle shops that offer repair services.                             |
+
 ### Example usage
 
 Use default drinking water points:
@@ -95,10 +105,16 @@ Add both water points and toilets:
 thirsty input.gpx output.gpx -w water -t
 ```
 
-Add all supported water amenities and toilets:
+Add water points, toilets, and bicycle repair stations:
 
 ```bash
-thirsty input.gpx output.gpx -w water -w point -w tap -w spring -w fountain -t
+thirsty input.gpx output.gpx -w water -t -r workshop -r pump
+```
+
+Add all supported water amenities, toilets, and bicycle repair amenities:
+
+```bash
+thirsty input.gpx output.gpx -w water -w point -w tap -w spring -w fountain -t -r workshop -r rental -r pump -r shop
 ```
 
 > **Note**: The older `-p` option is still supported for backward compatibility but is deprecated. It is recommended to use the `-w` option instead.
@@ -124,15 +140,16 @@ pip install .
 
 ### Download GPX from URL and Add POIs
 
-This example shows how to download a GPX file from a URL, add drinking water and toilet POIs to the route, and save the modified GPX to an output file.
+This example shows how to download a GPX file from a URL, add drinking water, toilet, and bicycle repair POIs to the route, and save the modified GPX to an output file.
 
 ```bash
-thirsty https://example.com/yourfile.gpx output.gpx --water water --toilet toilets --distance 150
+thirsty https://example.com/yourfile.gpx output.gpx --water water --toilet --repair workshop --distance 150
 ```
 
 - **URL or Local GPX**: Supports both local files and downloading from a URL.
 - **Water Amenities**: Specify which water amenities to add with `-w/--water`.
-- **Toilet Amenities**: Specify which toilet amenities to add with `-t/--toilet`.
+- **Toilet Amenities**: Add toilets with `-t/--toilet`.
+- **Repair Amenities**: Specify which bicycle repair amenities to add with `-r/--repair`.
 - **Distance**: Optionally specify the maximum distance (in meters) from the track for POIs (default: 100 meters).
 
 ### Local GPX File Usage
@@ -144,16 +161,19 @@ You can also process a local GPX file with various options:
 thirsty input.gpx output.gpx
 
 # Add water points and toilets
-thirsty input.gpx output.gpx -w water -t toilets
+thirsty input.gpx output.gpx -w water -t
+
+# Add water points, toilets, and bicycle repair stations
+thirsty input.gpx output.gpx -w water -t -r workshop
 
 # Specify search distance
-thirsty input.gpx output.gpx -w water -t toilets --distance 150
+thirsty input.gpx output.gpx -w water -t -r workshop --distance 150
 ```
 
 ### Features in Detail
 
 #### 1. Bounding Box Filtering
-- Queries the Overpass API for drinking water and toilet POIs within the bounding box of the GPX file's route.
+- Queries the Overpass API for drinking water, toilet, and bicycle repair POIs within the bounding box of the GPX file's route.
 
 #### 2. Distance-based Filtering
 - Filters POIs that are within a specified distance from the GPX track. This ensures that only nearby POIs are added to the GPX file.
