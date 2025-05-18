@@ -14,12 +14,16 @@ console = rich.console.Console()
 OVERPASS_URL = "http://overpass-api.de/api/interpreter"
 
 
-AMENITIES = {
+WATER_AMENITIES = {
     "water": "[amenity=drinking_water]",
     "point": "[amenity=water_point][drinking_water=yes]",
     "tap": "[man_made=water_tap][drinking_water=yes]",
     "spring": "[natural=spring][drinking_water=yes]",
     "fountain": "[amenity=fountain][drinking_water=yes]",
+}
+
+TOILET_AMENITIES = {
+    "toilets": "[amenity=toilets]",
 }
 
 
@@ -54,10 +58,22 @@ def display_gpx_on_map(data, pois):
 
     # Plot POIs on the map
     for poi in pois:
+        icon_color = "blue"
+        icon_symbol = "info-sign"
+        popup_text = ""
+        
+        if "amenity" in poi["tags"]:
+            if poi["tags"]["amenity"] == "toilets":
+                icon_color = "purple"
+                icon_symbol = "home"
+                popup_text = "Toilets"
+            else:
+                popup_text = f"{poi['tags']['amenity']}"
+                
         folium.Marker(
             location=[poi['lat'], poi['lon']],
-            popup=folium.Popup(f"{poi['tags']['amenity']}", max_width=300),
-            icon=folium.Icon(color="blue", icon="info-sign")
+            popup=folium.Popup(popup_text, max_width=300),
+            icon=folium.Icon(color=icon_color, icon=icon_symbol)
         ).add_to(folium_map)
 
     return folium_map
@@ -99,20 +115,27 @@ def get_bounds(gpx):
     return min_lat, min_lon, max_lat, max_lon
 
 
-def query_overpass(bbox, poi_types):
+def query_overpass(bbox, water_types=None, toilet_types=None):
     """
-    Generate an Overpass QL query for potable drinking water POIs.
+    Generate an Overpass QL query for potable drinking water POIs and/or toilets.
     """
 
     south, west, north, east = bbox
     bbox_str = f"({south},{west},{north},{east})"
 
     query_parts = []
-    for poi_type in poi_types:
-        tag_filter = AMENITIES[poi_type]
-        # for osm_type in ["node", "way", "relation"]:
-        #     query_parts.append(f'{osm_type}{tag_filter}{bbox_str};')
-        query_parts.append(f'node{tag_filter}{bbox_str};')
+    
+    if water_types:
+        for poi_type in water_types:
+            tag_filter = WATER_AMENITIES[poi_type]
+            # for osm_type in ["node", "way", "relation"]:
+            #     query_parts.append(f'{osm_type}{tag_filter}{bbox_str};')
+            query_parts.append(f'node{tag_filter}{bbox_str};')
+            
+    if toilet_types:
+        for poi_type in toilet_types:
+            tag_filter = TOILET_AMENITIES[poi_type]
+            query_parts.append(f'node{tag_filter}{bbox_str};')
 
     query = "[out:json][timeout:25];(" + "".join(query_parts) + ");out center;"
     response = requests.post(OVERPASS_URL, data=query)
@@ -129,10 +152,19 @@ def add_waypoints_to_gpx(gpx, pois):
         wpt = gpxpy.gpx.GPXWaypoint()
         wpt.latitude = poi["lat"]
         wpt.longitude = poi["lon"]
-        wpt.name = "Water"
-        wpt.description = "Water"
-        wpt.symbol = "water-drop"
-        wpt.type = "WATER"
+        
+        # Determine POI type based on tags
+        if "amenity" in poi["tags"] and poi["tags"]["amenity"] == "toilets":
+            wpt.name = "Toilets"
+            wpt.description = "Toilets"
+            wpt.symbol = "restroom"
+            wpt.type = "TOILET"
+        else:
+            wpt.name = "Water"
+            wpt.description = "Water"
+            wpt.symbol = "water-drop"
+            wpt.type = "WATER"
+            
         gpx.waypoints.append(wpt)
 
     return gpx

@@ -6,7 +6,7 @@
 
 # Thirsty
 
-Add hydration points to your GPX tracks automatically 🚴‍♂️💧
+Add hydration points and toilets to your GPX tracks automatically 🚴‍♂️💧🚻
 
 <p align="center">
 <a href="https://www.paypal.com/donate/?business=TJAXC3T4WD66L&no_recurring=0&currency_code=EUR" target="_blank">
@@ -14,7 +14,7 @@ Add hydration points to your GPX tracks automatically 🚴‍♂️💧
 </a>
 </p>
 
-Thirsty is a Python tool that enhances your GPX files by adding Points of Interest (POIs), particularly drinking water points, to your cycling or running routes. It integrates with the Overpass API to query OpenStreetMap for relevant points along your route and adds them to the GPX file. Ideal for long-distance cycling events, ultra races, or any activity where hydration points matter!
+Thirsty is a Python tool that enhances your GPX files by adding Points of Interest (POIs), such as drinking water points and toilets, to your cycling or running routes. It integrates with the Overpass API to query OpenStreetMap for relevant points along your route and adds them to the GPX file. Ideal for long-distance cycling events, ultra races, or any activity where hydration points and facilities matter!
 
 Found a bug? Need a new feature? [Open an Issue](https://github.com/jsleroy/thirsty/issues)!
 
@@ -40,7 +40,7 @@ Found a bug? Need a new feature? [Open an Issue](https://github.com/jsleroy/thir
 
 ## Features
 
-- **Query Overpass API**: Fetch drinking water POIs from OpenStreetMap.
+- **Query Overpass API**: Fetch drinking water and toilet POIs from OpenStreetMap.
 - **Bounding Box Filtering**: Filter POIs around a defined area to match your GPX route.
 - **Distance-based Filtering**: Ensures POIs are within a defined proximity of your GPX track.
 - **Supports GPX from URL and Local Files**: Easily work with GPX files from your device or download them from a URL.
@@ -50,35 +50,58 @@ Found a bug? Need a new feature? [Open an Issue](https://github.com/jsleroy/thir
 ## POI Type Selection
 
 By default, **Thirsty** searches for public drinking water fountains (`drinking_water` POIs).
-You can customize which types of potable water points you want to add using the `--poi-type` (or `-p`) option.
+You can customize which types of POIs you want to add using the following options:
 
-- You can specify **one or more** POI types by repeating the `-p` option.
-- If no `-p` option is specified, `drinking_water` will be used automatically.
+- **`--water`** (or `-w`): Specify water-related POI types (can be repeated for multiple types)
+- **`--toilet`** (or `-t`): Add toilet amenities to the trace (flag, no additional argument needed)
+
+If no option is specified, the default water amenity (`drinking_water`) will be used.
 
 ### Available POI types
 
+#### Water Amenities
+
 | POI Type        | Description                                                            |
 |:----------------|:-----------------------------------------------------------------------|
-| `drinking_water` | Public drinking water fountains (default).                            |
-| `water_point`    | Water refill stations for caravans, RVs, or marinas (only potable ones). |
-| `water_tap`      | Taps providing potable water.                                          |
-| `spring`         | Natural springs with potable water.                                   |
-| `fountain`       | Public decorative fountains explicitly marked as potable.             |
+| `water`         | Public drinking water fountains (default).                            |
+| `point`         | Water refill stations for caravans, RVs, or marinas (only potable ones). |
+| `tap`           | Taps providing potable water.                                          |
+| `spring`        | Natural springs with potable water.                                   |
+| `fountain`      | Public decorative fountains explicitly marked as potable.             |
+
+#### Toilet Amenities
+
+| POI Type        | Description                                                            |
+|:----------------|:-----------------------------------------------------------------------|
+| `toilets`       | Public toilets.                                                       |
 
 ### Example usage
 
 Use default drinking water points:
 
 ```bash
-thirsty -i trace.gpx -o trace_with_poi.gpx
+thirsty input.gpx output.gpx
 ```
 
 Use **only** springs and water taps:
 
 ```bash
-thirsty -i trace.gpx -o trace_with_poi.gpx -p spring -p tap
+thirsty input.gpx output.gpx -w spring -w tap
 ```
-If an invalid POI type is provided, the program will display an error message and exit.
+
+Add both water points and toilets:
+
+```bash
+thirsty input.gpx output.gpx -w water -t
+```
+
+Add all supported water amenities and toilets:
+
+```bash
+thirsty input.gpx output.gpx -w water -w point -w tap -w spring -w fountain -t
+```
+
+> **Note**: The older `-p` option is still supported for backward compatibility but is deprecated. It is recommended to use the `-w` option instead.
 
 ## ⚙️ Installation
 
@@ -101,27 +124,36 @@ pip install .
 
 ### Download GPX from URL and Add POIs
 
-This example shows how to download a GPX file from a URL, add drinking water POIs to the route, and save the modified GPX to an output file.
+This example shows how to download a GPX file from a URL, add drinking water and toilet POIs to the route, and save the modified GPX to an output file.
 
 ```bash
-thirsty https://example.com/yourfile.gpx output.gpx --distance 150
+thirsty https://example.com/yourfile.gpx output.gpx --water water --toilet toilets --distance 150
 ```
 
 - **URL or Local GPX**: Supports both local files and downloading from a URL.
+- **Water Amenities**: Specify which water amenities to add with `-w/--water`.
+- **Toilet Amenities**: Specify which toilet amenities to add with `-t/--toilet`.
 - **Distance**: Optionally specify the maximum distance (in meters) from the track for POIs (default: 100 meters).
 
 ### Local GPX File Usage
 
-You can also process a local GPX file:
+You can also process a local GPX file with various options:
 
 ```bash
-thirsty input.gpx output.gpx --distance 150
+# Add default water points
+thirsty input.gpx output.gpx
+
+# Add water points and toilets
+thirsty input.gpx output.gpx -w water -t toilets
+
+# Specify search distance
+thirsty input.gpx output.gpx -w water -t toilets --distance 150
 ```
 
 ### Features in Detail
 
 #### 1. Bounding Box Filtering
-- Queries the Overpass API for drinking water POIs within the bounding box of the GPX file's route.
+- Queries the Overpass API for drinking water and toilet POIs within the bounding box of the GPX file's route.
 
 #### 2. Distance-based Filtering
 - Filters POIs that are within a specified distance from the GPX track. This ensures that only nearby POIs are added to the GPX file.
